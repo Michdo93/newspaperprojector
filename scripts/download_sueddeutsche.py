@@ -12,8 +12,8 @@ FEEDS = [
     ("Wirtschaft", "https://rss.sueddeutsche.de/rss/Wirtschaft"),
 ]
 
-AUSGABE = "/home/debian/zeitung/sz_heute.html"
-HEUTE   = datetime.now().strftime("%d.%m.%Y")
+OUTPUT = "/home/debian/newspaper/sueddeutsche.html"
+TODAY   = datetime.now().strftime("%d.%m.%Y")
 
 JAVASCRIPT = """
 <script>
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 """
 
-def hole_artikel(url):
+def get_article(url):
     try:
         r = requests.get(url, timeout=10,
                          headers={'User-Agent': 'Mozilla/5.0'})
@@ -95,31 +95,31 @@ html = f"""<!DOCTYPE html>
 </style>
 {JAVASCRIPT}
 </head><body>
-<h1>Süddeutsche Zeitung — {HEUTE}</h1>
+<h1>Süddeutsche Zeitung — {TODAY}</h1>
 """
 
-for rubrik, feed_url in FEEDS:
+for category, feed_url in FEEDS:
     feed = feedparser.parse(feed_url)
-    html += f"<h2>{rubrik}</h2>\n"
+    html += f"<h2>{category}</h2>\n"
     for entry in feed.entries[:5]:
-        titel    = entry.get('title', '')
-        zusammen = entry.get('summary', '')
+        title    = entry.get('title', '')
+        summary = entry.get('summary', '')
         link     = entry.get('link', '')
-        html += f"<h3>{titel}</h3>\n"
+        html += f"<h3>{title}</h3>\n"
         html += f"<p class='datum'>{link}</p>\n"
-        html += f"<p>{zusammen}</p>\n"
-        volltext = hole_artikel(link)
-        if volltext:
-            for absatz in volltext.split('\n'):
-                absatz = absatz.strip()
-                if len(absatz) > 60:
-                    html += f"<p>{absatz}</p>\n"
+        html += f"<p>{summary}</p>\n"
+        fulltext = get_article(link)
+        if fulltext:
+            for paragraph in fulltext.split('\n'):
+                paragraph = paragraph.strip()
+                if len(paragraph) > 60:
+                    html += f"<p>{paragraph}</p>\n"
         html += "<hr class='trenner'>\n"
 
 html += "</body></html>"
 
-os.makedirs(os.path.dirname(AUSGABE), exist_ok=True)
-with open(AUSGABE, 'w', encoding='utf-8') as f:
+os.makedirs(os.path.dirname(OUTPUT), exist_ok=True)
+with open(OUTPUT, 'w', encoding='utf-8') as f:
     f.write(html)
 
-print(f"Gespeichert: {AUSGABE}")
+print(f"Saved: {OUTPUT}")
