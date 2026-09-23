@@ -11,4 +11,4 @@ sleep 2
 # Zeitung öffnen
 chromium --kiosk --no-sandbox \
   --hide-scrollbars \
-  /home/debian/zeitung/sz_heute.html &
+  /home/debian/newspaper/sueddeutsche.html &
