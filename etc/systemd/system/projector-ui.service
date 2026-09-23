@@ -1,0 +1,14 @@
+[Unit]
+Description=Projector Flask Web Interface
+After=network.target projector-daemon.service
+
+[Service]
+Type=simple
+User=debian
+WorkingDirectory=/home/debian/scripts
+ExecStart=/usr/bin/python3 /home/debian/scripts/web_app.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
