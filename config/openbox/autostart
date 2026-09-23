@@ -1,0 +1,14 @@
+#!/bin/bash
+export DISPLAY=:0
+sleep 8
+
+# DLP initialisieren
+i2cset -y 2 0x1b 0x0b 0x00 0x00 0x00 0x00 i
+sleep 1
+i2cset -y 2 0x1b 0x0c 0x00 0x00 0x00 0x1b i
+sleep 2
+
+# Zeitung öffnen
+chromium --kiosk --no-sandbox \
+  --hide-scrollbars \
+  /home/debian/zeitung/sz_heute.html &
