@@ -1,11 +1,11 @@
 [Unit]
-Description=Projektor MQTT Steuerung
+Description=Projector Control using MQTT
 After=network.target graphical.target
 
 [Service]
 User=debian
 Environment=DISPLAY=:0
-ExecStart=/usr/bin/python3 /home/debian/scripts/steuerung_mqtt.py
+ExecStart=/usr/bin/python3 /home/debian/scripts/control_mqtt.py
 Restart=always
 RestartSec=5
 
