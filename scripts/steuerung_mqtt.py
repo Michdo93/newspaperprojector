@@ -25,13 +25,54 @@ def projektor_an():
 def projektor_aus():
     subprocess.run(["xset", "-display", ":0", "dpms", "force", "off"])
 
+# --- I2C-Funktionen für die Bildausrichtung ---
+
+def bild_drehen_180():
+    """Dreht das Bild um 180 Grad (Spiegelt horizontal UND vertikal)"""
+    log.info("Drehe Bild um 180 Grad...")
+    subprocess.run(["i2cset", "-y", "2", "0x1b", "0x0f", "0x00", "0x00", "0x00", "0x00", "i"])
+    subprocess.run(["i2cset", "-y", "2", "0x1b", "0x10", "0x00", "0x00", "0x00", "0x01", "i"])
+
+def bild_drehen_normal():
+    """Setzt das Bild wieder auf die normale Ausrichtung (0 Grad)"""
+    log.info("Setze Bild auf Normalstellung (0 Grad)...")
+    subprocess.run(["i2cset", "-y", "2", "0x1b", "0x0f", "0x00", "0x00", "0x00", "0x01", "i"])
+    subprocess.run(["i2cset", "-y", "2", "0x1b", "0x10", "0x00", "0x00", "0x00", "0x00", "i"])
+
+def spiegeln_horizontal_an():
+    subprocess.run(["i2cset", "-y", "2", "0x1b", "0x0f", "0x00", "0x00", "0x00", "0x00", "i"])
+
+def spiegeln_horizontal_aus():
+    subprocess.run(["i2cset", "-y", "2", "0x1b", "0x0f", "0x00", "0x00", "0x00", "0x01", "i"])
+
+def spiegeln_vertikal_an():
+    subprocess.run(["i2cset", "-y", "2", "0x1b", "0x10", "0x00", "0x00", "0x00", "0x01", "i"])
+
+def spiegeln_vertikal_aus():
+    subprocess.run(["i2cset", "-y", "2", "0x1b", "0x10", "0x00", "0x00", "0x00", "0x00", "i"])
+
+
 GESTEN = {
-    "SEITE_VOR":     lambda: xdo("Right"),
-    "SEITE_ZURUECK": lambda: xdo("Left"),
-    "SCROLL_RUNTER": lambda: xdo("Down"),
-    "SCROLL_HOCH":   lambda: xdo("Up"),
-    "PROJEKTOR_AN":  projektor_an,
-    "PROJEKTOR_AUS": projektor_aus,
+    # Tastatur-Navigation
+    "SEITE_VOR":       lambda: xdo("Right"),
+    "SEITE_ZURUECK":   lambda: xdo("Left"),
+    "SCROLL_RUNTER":   lambda: xdo("Down"),
+    "SCROLL_HOCH":     lambda: xdo("Up"),
+    
+    # Projektor Power
+    "PROJEKTOR_AN":    projektor_an,
+    "PROJEKTOR_AUS":   projektor_aus,
+    
+    # Bild-Rotationen
+    "DREHEN_180":      bild_drehen_180,
+    "DREHEN_NORMAL":   bild_drehen_normal,
+    "DREHEN_0":        bild_drehen_normal,
+    
+    # Einzelne Spiegelungen (optional)
+    "SPIEGELN_H_AN":   spiegeln_horizontal_an,
+    "SPIEGELN_H_AUS":  spiegeln_horizontal_aus,
+    "SPIEGELN_V_AN":   spiegeln_vertikal_an,
+    "SPIEGELN_V_AUS":  spiegeln_vertikal_aus,
 }
 
 def on_connect(client, userdata, flags, rc):
