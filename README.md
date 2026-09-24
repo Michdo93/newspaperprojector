@@ -406,7 +406,9 @@ DISPLAY=:0 xdotool key Left
 
 ## Gesture Control via Kinect (separate repository)
 
-A separate Raspberry Pi with a Kinect camera (mounted pointing downward) runs a MQTT publisher that detects hand gestures and sends `projector/command/gesture` messages to this system. See the companion repository for installation and wiring instructions.
+A separate Raspberry Pi with a Kinect camera (mounted pointing downward) runs a MQTT publisher that detects hand gestures and sends `projector/command/gesture` messages to this system. See the companion repository for installation and wiring instructions:
+
+[https://github.com/Michdo93/newspaperprojector-gesture-control/](https://github.com/Michdo93/newspaperprojector-gesture-control/)
 
 ---
 
