@@ -18,7 +18,9 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 current_state = {
     "power": "UNKNOWN",
     "rotation": "UNKNOWN",
-    "mirror": "UNKNOWN"
+    "mirror": "UNKNOWN",
+    "freeze": "UNKNOWN",
+    "testpattern": "UNKNOWN"
 }
 
 mqtt_client = mqtt.Client()
@@ -38,6 +40,10 @@ def on_mqtt_message(client, userdata, msg):
         current_state["rotation"] = payload
     elif topic == "projector/state/mirror":
         current_state["mirror"] = payload
+    elif topic == "projector/state/freeze":
+        current_state["freeze"] = payload
+    elif topic == "projector/state/testpattern":
+        current_state["testpattern"] = payload
 
     socketio.emit('state_update', current_state)
 
@@ -60,18 +66,20 @@ HTML_TEMPLATE = """
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; text-align: center; padding: 20px; }
-        .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px; max-width: 450px; margin: 0 auto 20px auto; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px; max-width: 480px; margin: 0 auto 20px auto; }
         h1 { color: #58a6ff; font-size: 20px; margin-bottom: 15px; }
-        .status-bar { display: flex; justify-content: space-around; margin-bottom: 20px; font-weight: bold; font-size: 14px; }
+        .status-bar { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; font-weight: bold; font-size: 13px; }
         .status-on { color: #3fb950; }
         .status-off { color: #f85149; }
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { background: #21262d; border: 1px solid #30363d; color: #f0f6fc; padding: 12px; border-radius: 8px; font-size: 15px; cursor: pointer; }
+        button { background: #21262d; border: 1px solid #30363d; color: #f0f6fc; padding: 12px; border-radius: 8px; font-size: 14px; cursor: pointer; }
         button:active { background: #30363d; }
         .btn-danger { background: #8e1519; }
         .btn-success { background: #238636; }
+        .btn-warning { background: #9e6a03; }
         .full-width { grid-column: span 2; }
-        .section-title { font-size: 14px; color: #8b949e; text-align: left; margin: 10px 0 5px 0; grid-column: span 2; }
+        .section-title { font-size: 14px; color: #8b949e; text-align: left; margin: 12px 0 4px 0; grid-column: span 2; border-bottom: 1px solid #21262d; padding-bottom: 4px; }
+        select { background: #21262d; border: 1px solid #30363d; color: #f0f6fc; padding: 10px; border-radius: 8px; font-size: 14px; width: 100%; grid-column: span 2; }
     </style>
 </head>
 <body>
@@ -81,12 +89,19 @@ HTML_TEMPLATE = """
             <div>Power: <span id="st-power" class="status-off">...</span></div>
             <div>Rotation: <span id="st-rotation" style="color:#e3b341">...</span></div>
             <div>Mirror: <span id="st-mirror" style="color:#e3b341">...</span></div>
+            <div>Freeze: <span id="st-freeze" style="color:#e3b341">...</span></div>
+            <div>Pattern: <span id="st-pattern" style="color:#e3b341">...</span></div>
         </div>
 
         <div class="btn-grid">
             <!-- Power Controls -->
             <button class="btn-success" onclick="sendCmd('power', 'ON')">Power ON</button>
             <button class="btn-danger" onclick="sendCmd('power', 'OFF')">Power OFF</button>
+
+            <!-- Freeze Control -->
+            <div class="section-title">Freeze Image</div>
+            <button class="btn-warning" onclick="sendCmd('freeze', 'ON')">Freeze ON</button>
+            <button onclick="sendCmd('freeze', 'OFF')">Freeze OFF</button>
             
             <!-- Rotation Controls -->
             <div class="section-title">Rotation Control</div>
@@ -98,6 +113,21 @@ HTML_TEMPLATE = """
             <button onclick="sendCmd('mirror', 'NORMAL')">Mirror OFF</button>
             <button onclick="sendCmd('mirror', 'FLIP_H')">Flip Horizontal</button>
             <button class="full-width" onclick="sendCmd('mirror', 'FLIP_V')">Flip Vertical</button>
+
+            <!-- Test Pattern Controls -->
+            <div class="section-title">Test Patterns</div>
+            <select onchange="sendCmd('testpattern', this.value)">
+                <option value="OFF">-- Test Pattern OFF (Normal Input) --</option>
+                <option value="CHECKERBOARD">Checkerboard (Schachbrett)</option>
+                <option value="WHITE">White (Weiß 0x08)</option>
+                <option value="WHITE_ALT">White Alt (0x02)</option>
+                <option value="BLACK">Black (Schwarz)</option>
+                <option value="RED">Red (Rot)</option>
+                <option value="GREEN">Green (Grün)</option>
+                <option value="BLUE">Blue (Blau)</option>
+                <option value="GRAY_H">Gray Gradients H (Graustufen H)</option>
+                <option value="GRAY_V">Gray Gradients V (Graustufen V)</option>
+            </select>
         </div>
     </div>
 
@@ -121,6 +151,8 @@ HTML_TEMPLATE = """
 
             document.getElementById('st-rotation').innerText = data.rotation;
             document.getElementById('st-mirror').innerText = data.mirror;
+            document.getElementById('st-freeze').innerText = data.freeze;
+            document.getElementById('st-pattern').innerText = data.testpattern;
         });
 
         function sendCmd(type, payload) {
