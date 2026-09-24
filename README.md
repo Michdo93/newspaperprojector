@@ -67,8 +67,8 @@ sudo reboot
 ### 2. Set hostname and timezone
 
 ```bash
-sudo nano /etc/hostname    # set to: newspaperprojector
-sudo nano /etc/hosts       # replace 127.0.1.1 line: 127.0.1.1 newspaperprojector
+sudo nano /etc/hostname    # set to: newspaperprojector.local
+sudo nano /etc/hosts       # replace 127.0.1.1 line: 127.0.1.1 newspaperprojector.local newspaperprojector
 sudo timedatectl set-timezone Europe/Berlin
 ```
 
