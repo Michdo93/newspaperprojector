@@ -244,25 +244,26 @@ sudo systemctl enable rc-local
 Copy `etc/mosquitto/conf.d/local.conf` from this repository or add to the Mosquitto configuration:
 
 ```bash
-sudo nano /etc/mosquitto/conf.d/local.conf
+sudo nano /etc/mosquitto/mosquitto.conf
 ```
 
 ```
-# Mosquitto configuration for Newspaper Projector
-# Listens on all interfaces — encrypted with TLS, password required
+pid_file /run/mosquitto/mosquitto.pid
 
-# ── Unencrypted local listener (127.0.0.1 only) ───────────────
+persistence true
+persistence_location /var/lib/mosquitto/
+
+log_dest file /var/log/mosquitto/mosquitto.log
+
+password_file /etc/mosquitto/passwd
+allow_anonymous false
+
 listener 1883 127.0.0.1
-allow_anonymous false
-password_file /etc/mosquitto/passwd
 
-# ── Encrypted external listener (all interfaces) ──────────────
 listener 8883
-allow_anonymous false
-password_file /etc/mosquitto/passwd
-cafile   /etc/mosquitto/certs/ca.crt
+cafile /etc/mosquitto/certs/ca.crt
 certfile /etc/mosquitto/certs/server.crt
-keyfile  /etc/mosquitto/certs/server.key
+keyfile /etc/mosquitto/certs/server.key
 tls_version tlsv1.2
 ```
 
