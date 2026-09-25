@@ -241,7 +241,7 @@ sudo systemctl enable rc-local
 
 #### a) Configure the Mosquitto Broker
 
-Copy `etc/mosquitto/conf.d/local.conf` from this repository or add to the Mosquitto configuration:
+Copy `etc/mosquitto/mosquitto.conf` from this repository or add to the Mosquitto configuration:
 
 ```bash
 sudo nano /etc/mosquitto/mosquitto.conf
