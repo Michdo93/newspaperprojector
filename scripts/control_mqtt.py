@@ -16,12 +16,11 @@ logging.basicConfig(
 )
 log = logging.getLogger("projector_daemon")
 
-# ── MQTT Configuration ─────────────────────────────────────────────────────────
+# MQTT Configuration
 BROKER   = "127.0.0.1"        # Local broker on this device
 PORT     = 1883               # Unencrypted local port
 USERNAME = "projector"        # Must match /etc/mosquitto/passwd
-PASSWORD = "changeme"         # Change this — same value in web_app.py
-# ──────────────────────────────────────────────────────────────────────────────
+PASSWORD = "changeme"         # Change this - same value in web_app.py
 
 TOPIC_CMD_POWER    = "projector/command/power"
 TOPIC_CMD_ROTATION = "projector/command/rotation"
