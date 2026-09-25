@@ -18,12 +18,11 @@ logging.basicConfig(
 )
 log = logging.getLogger("web_ui")
 
-# ── MQTT Configuration ─────────────────────────────────────────────────────────
+# MQTT Configuration
 BROKER   = "127.0.0.1"        # Local broker on this device
 PORT     = 1883               # Unencrypted local port
 USERNAME = "projector"        # Must match /etc/mosquitto/passwd
-PASSWORD = "changeme"         # Change this — same value in control_mqtt.py
-# ──────────────────────────────────────────────────────────────────────────────
+PASSWORD = "changeme"         # Change this - same value in control_mqtt.py
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'beaglebone_projector_secret'
