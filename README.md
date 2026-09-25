@@ -237,7 +237,9 @@ sudo systemctl enable rc-local
 
 ---
 
-### 10. Configure Mosquitto
+### 10. Configure MQTT
+
+#### a) Configure the Mosquitto Broker
 
 Copy `etc/mosquitto/conf.d/local.conf` from this repository or add to the Mosquitto configuration:
 
@@ -246,13 +248,77 @@ sudo nano /etc/mosquitto/conf.d/local.conf
 ```
 
 ```
-listener 1883
-allow_anonymous true
+# Mosquitto configuration for Newspaper Projector
+# Listens on all interfaces — encrypted with TLS, password required
+
+# ── Unencrypted local listener (127.0.0.1 only) ───────────────
+listener 1883 127.0.0.1
+allow_anonymous false
+password_file /etc/mosquitto/passwd
+
+# ── Encrypted external listener (all interfaces) ──────────────
+listener 8883
+allow_anonymous false
+password_file /etc/mosquitto/passwd
+cafile   /etc/mosquitto/certs/ca.crt
+certfile /etc/mosquitto/certs/server.crt
+keyfile  /etc/mosquitto/certs/server.key
+tls_version tlsv1.2
 ```
 
 ```bash
 sudo systemctl enable mosquitto
 sudo systemctl restart mosquitto
+```
+
+#### b) Setting Up Mosquitto Passwords and Certificates
+
+```
+# Create a password file
+sudo mosquitto_passwd -c /etc/mosquitto/passwd projector
+# Enter password: changeme (or your own password)
+
+# Generate TLS Certificates (Self-Signed)
+sudo mkdir -p /etc/mosquitto/certs
+cd /etc/mosquitto/certs
+
+# CA
+sudo openssl req -new -x509 -days 3650 -keyout ca.key -out ca.crt \
+  -subj "/CN=NewspaperProjector-CA" -nodes
+
+# Server Key and Certificate
+sudo openssl req -new -keyout server.key -out server.csr \
+  -subj "/CN=newspaperprojector.local" -nodes
+sudo openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key \
+  -CAcreateserial -out server.crt -days 3650
+
+sudo chmod 640 /etc/mosquitto/certs/*.key
+sudo chown mosquitto:mosquitto /etc/mosquitto/certs/*
+
+# Restart Mosquitto
+sudo systemctl restart mosquitto
+sudo systemctl status mosquitto
+```
+
+#### c) Connect remotely
+
+```
+# Copy ca.crt to the computer
+scp debian@newspaperprojector.local:/etc/mosquitto/certs/ca.crt ~/
+
+# Subscribe (encrypted, Port 8883)
+mosquitto_sub \
+  --cafile ~/ca.crt \
+  -h newspaperprojector.local -p 8883 \
+  -u projector -P changeme \
+  -t "projector/#"
+
+# Publish
+mosquitto_pub \
+  --cafile ~/ca.crt \
+  -h newspaperprojector.local -p 8883 \
+  -u projector -P changeme \
+  -t "projector/command/gesture" -m "PAGE_NEXT"
 ```
 
 ---
@@ -275,7 +341,7 @@ cp config/openbox/autostart          /home/debian/.config/openbox/autostart
 chmod +x /home/debian/.config/openbox/autostart
 ```
 
-Edit `control_mqtt.py` and `web_app.py`: replace `192.168.0.5` with your MQTT broker IP.
+Edit `control_mqtt.py` and `web_app.py`: replace `USERNAME` with the value `projector` and `PASSWORD` with the value `changeme` if you created an own username and password.
 
 ---
 
