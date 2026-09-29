@@ -1,0 +1,56 @@
+sitemap newspaperprojector label="Newspaper Projector" {
+
+    Frame label="Newspaper Projector" {
+
+        // ── Status ─────────────────────────────────────────────────────────
+        Switch item=NP_Power         label="Power"           icon="screen"
+        Switch item=NP_Freeze        label="Freeze Image"    icon="pause"
+
+        // ── Navigation ─────────────────────────────────────────────────────
+        Text label="Navigation" icon="movecontrol" {
+            Frame label="Article Navigation" {
+                Switch item=NP_Gesture label="Next Article"     mappings=["PAGE_NEXT"="▶ Next"]
+                Switch item=NP_Gesture label="Previous Article" mappings=["PAGE_PREV"="◀ Prev"]
+            }
+            Frame label="Scroll" {
+                Switch item=NP_Gesture label="Scroll Up"   mappings=["SCROLL_UP"="▲ Up"]
+                Switch item=NP_Gesture label="Scroll Down" mappings=["SCROLL_DOWN"="▼ Down"]
+            }
+        }
+
+        // ── Image Control ──────────────────────────────────────────────────
+        Text label="Image Control" icon="settings" {
+            Frame label="Rotation" {
+                Selection item=NP_Rotation label="Rotation" mappings=[
+                    "NORMAL"="Normal (0°)",
+                    "ROTATE_180"="Rotate 180°"
+                ]
+            }
+            Frame label="Mirror" {
+                Selection item=NP_Mirror label="Mirror" mappings=[
+                    "NORMAL"="Off",
+                    "FLIP_H"="Flip Horizontal",
+                    "FLIP_V"="Flip Vertical"
+                ]
+            }
+        }
+
+        // ── Test Patterns ──────────────────────────────────────────────────
+        Text label="Test Patterns" icon="colorwheel" {
+            Frame label="Pattern" {
+                Selection item=NP_TestPattern label="Test Pattern" mappings=[
+                    "OFF"="Off (Normal Input)",
+                    "CHECKERBOARD"="Checkerboard",
+                    "WHITE"="White",
+                    "WHITE_ALT"="White Alt",
+                    "BLACK"="Black",
+                    "RED"="Red",
+                    "GREEN"="Green",
+                    "BLUE"="Blue",
+                    "GRAY_H"="Gray Gradients H",
+                    "GRAY_V"="Gray Gradients V"
+                ]
+            }
+        }
+    }
+}
