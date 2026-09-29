@@ -1,0 +1,36 @@
+// Newspaper Projector — openHAB Items
+
+// ── Power ──────────────────────────────────────────────────────────────────────
+Switch NP_Power "Newspaper Projector Power" <screen>
+    (gNewspaperProjector)
+    [ "Switch", "Power" ]
+    { channel="mqtt:topic:newspaperprojector:dlpdlcr2000:power" }
+
+// ── Freeze ─────────────────────────────────────────────────────────────────────
+Switch NP_Freeze "Freeze Image" <pause>
+    (gNewspaperProjector)
+    [ "Switch" ]
+    { channel="mqtt:topic:newspaperprojector:dlpdlcr2000:freeze" }
+
+// ── Rotation ───────────────────────────────────────────────────────────────────
+String NP_Rotation "Rotation [%s]" <settings>
+    (gNewspaperProjector)
+    { channel="mqtt:topic:newspaperprojector:dlpdlcr2000:rotation" }
+
+// ── Mirror ─────────────────────────────────────────────────────────────────────
+String NP_Mirror "Mirror [%s]" <settings>
+    (gNewspaperProjector)
+    { channel="mqtt:topic:newspaperprojector:dlpdlcr2000:mirror" }
+
+// ── Test Pattern ───────────────────────────────────────────────────────────────
+String NP_TestPattern "Test Pattern [%s]" <colorwheel>
+    (gNewspaperProjector)
+    { channel="mqtt:topic:newspaperprojector:dlpdlcr2000:testpattern" }
+
+// ── Navigation ─────────────────────────────────────────────────────────────────
+String NP_Gesture "Gesture Command [%s]" <movecontrol>
+    (gNewspaperProjector)
+    { channel="mqtt:topic:newspaperprojector:dlpdlcr2000:gesture" }
+
+// ── Group ──────────────────────────────────────────────────────────────────────
+Group gNewspaperProjector "Newspaper Projector" <projector>
