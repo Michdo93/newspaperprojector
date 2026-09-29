@@ -1,0 +1,48 @@
+// things/newspaperprojector.things
+// MQTT Binding – Newspaper Projector (BeagleBone Black + DLPDLCR2000EVM)
+//
+// Mosquitto runs locally on the BBB with TLS (port 8883) and authentication.
+// The ca.crt file must be located on the openHAB host, e.g.:
+//   /etc/openhab/certs/newspaperprojector_ca.crt
+//
+// Copy the certificate from the BBB (one-time):
+//   scp debian@newspaperprojector.local:/etc/mosquitto/certs/ca.crt \
+//       /etc/openhab/certs/newspaperprojector_ca.crt
+//   sudo chown openhab:openhab /etc/openhab/certs/newspaperprojector_ca.crt
+
+// ── Broker ────────────────────────────────────────────────────────────────────
+mqtt:broker:newspaperprojector "Newspaper Projector Broker" [
+    host           = "newspaperprojector.local",
+    port           = 8883,
+    secure         = true,
+    certificatepin = false,
+    publickeypin   = false,
+    keystore       = "/etc/openhab/certs/newspaperprojector_ca.crt",
+    keystorepwd    = "",
+    username       = "projector",
+    password       = "changeme",
+    clientid       = "openhab_newspaperprojector",
+    keepalive      = 60,
+    reconnectTime  = 5000
+]
+
+// ── Thing ─────────────────────────────────────────────────────────────────────
+Thing mqtt:topic:newspaperprojector:dlpdlcr2000 "DLP Newspaper Projector" (mqtt:broker:newspaperprojector) [
+    availabilityTopic   = "projector/availability",
+    payloadAvailable    = "online",
+    payloadNotAvailable = "offline"
+] {
+    Channels:
+        // Power (curtain mode via DLPC2607 register 0xa6)
+        Type switch : power       "Power"        [ stateTopic="projector/state/power",       commandTopic="projector/command/power",       on="ON", off="OFF", retained=true ]
+        // Freeze (register 0xa3)
+        Type switch : freeze      "Freeze"       [ stateTopic="projector/state/freeze",      commandTopic="projector/command/freeze",      on="ON", off="OFF", retained=true ]
+        // Rotation (NORMAL / ROTATE_180)
+        Type string : rotation    "Rotation"     [ stateTopic="projector/state/rotation",    commandTopic="projector/command/rotation",    retained=true ]
+        // Mirror (NORMAL / FLIP_H / FLIP_V)
+        Type string : mirror      "Mirror"       [ stateTopic="projector/state/mirror",      commandTopic="projector/command/mirror",      retained=true ]
+        // Test pattern (OFF / CHECKERBOARD / WHITE / WHITE_ALT / BLACK / RED / GREEN / BLUE / GRAY_H / GRAY_V)
+        Type string : testpattern "Test Pattern" [ stateTopic="projector/state/testpattern", commandTopic="projector/command/testpattern", retained=true ]
+        // Navigation — command-only, no state feedback
+        Type string : gesture     "Gesture"      [ commandTopic="projector/command/gesture" ]
+}
