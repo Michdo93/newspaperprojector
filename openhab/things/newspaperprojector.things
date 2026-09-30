@@ -27,11 +27,7 @@ mqtt:broker:newspaperprojector "Newspaper Projector Broker" [
 ]
 
 // ── Thing ─────────────────────────────────────────────────────────────────────
-Thing mqtt:topic:newspaperprojector:dlpdlcr2000 "DLP Newspaper Projector" (mqtt:broker:newspaperprojector) [
-    availabilityTopic   = "projector/availability",
-    payloadAvailable    = "online",
-    payloadNotAvailable = "offline"
-] {
+Thing mqtt:topic:newspaperprojector:dlpdlcr2000 "DLP Newspaper Projector" (mqtt:broker:newspaperprojector) {
     Channels:
         // Power (curtain mode via DLPC2607 register 0xa6)
         Type switch : power       "Power"        [ stateTopic="projector/state/power",       commandTopic="projector/command/power",       on="ON", off="OFF", retained=true ]
