@@ -25,3 +25,4 @@
 # 
 # m h  dom mon dow   command
 0 9 * * * /usr/bin/python3 /home/debian/scripts/download_sueddeutsche.py
+5 9 * * * /home/debian/scripts/reload_newspaper.sh
