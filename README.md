@@ -369,6 +369,15 @@ sudo crontab -e
 
 ```
 0 9 * * * /usr/bin/python3 /home/debian/scripts/download_sueddeutsche.py
+5 9 * * * /home/debian/scripts/reload_newspaper.sh
+```
+
+And at 09:05 the kiosk mode in Chromium would be killed and reloaded to make sure that the new newspaper is loaded.
+
+Please make sure, that the `reload_newspaper.sh` script is executable:
+
+```
+sudo chmod +x /home/debian/scripts/reload_newspaper.sh
 ```
 
 ---
