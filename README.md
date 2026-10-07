@@ -460,6 +460,20 @@ The interface provides buttons for power, freeze, rotation, mirror, test pattern
 
 ---
 
+## I2C Continuous Operation
+
+The I2C freezes after a while. To fix this, we use `crontab` to remove `i2c_omap` from the `kernel` and reload it. You can edit the `crontab` with `sudo crontab -e`. When you're done, your crontab should contain the following lines.
+
+```
+0 9 * * * /usr/bin/python3 /home/debian/scripts/download_sueddeutsche.py
+5 9 * * * /home/debian/scripts/reload_newspaper.sh
+0 8,20,0 * * * /sbin/rmmod i2c_omap && /sbin/modprobe i2c_omap
+```
+
+I use the `Newspaper Projector` in a lab setting between 9:30 a.m. and 6:00 p.m. Of course, if you use the projector in the evening to watch TV or for other purposes, you might want to choose different times for the crontab.
+
+---
+
 ## Keyboard Navigation (in Chromium)
 
 The HTML newspaper responds to keyboard events sent by `xdotool`:
