@@ -1,6 +1,6 @@
 [Unit]
 Description=Projector Flask Web Interface
-After=network.target projector-daemon.service
+After=network.target projector-control.service
 
 [Service]
 Type=simple
