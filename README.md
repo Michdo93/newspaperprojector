@@ -67,8 +67,8 @@ sudo reboot
 ### 2. Set hostname and timezone
 
 ```bash
-sudo nano /etc/hostname    # set to: newspaperprojector.local
-sudo nano /etc/hosts       # replace 127.0.1.1 line: 127.0.1.1 newspaperprojector.local newspaperprojector
+sudo nano /etc/hostname    # set to: newspaper-projector
+sudo nano /etc/hosts       # replace 127.0.1.1 line: 127.0.1.1 newspaper-projector
 sudo timedatectl set-timezone Europe/Berlin
 ```
 
@@ -289,7 +289,7 @@ sudo openssl req -new -x509 -days 3650 -keyout ca.key -out ca.crt \
 
 # Server Key and Certificate
 sudo openssl req -new -keyout server.key -out server.csr \
-  -subj "/CN=newspaperprojector.local" -nodes
+  -subj "/CN=newspaper-projector" -nodes
 sudo openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key \
   -CAcreateserial -out server.crt -days 3650
 
@@ -305,19 +305,19 @@ sudo systemctl status mosquitto
 
 ```
 # Copy ca.crt to the computer
-scp debian@newspaperprojector.local:/etc/mosquitto/certs/ca.crt ~/
+scp debian@newspaper-projector:/etc/mosquitto/certs/ca.crt ~/
 
 # Subscribe (encrypted, Port 8883)
 mosquitto_sub \
   --cafile ~/ca.crt \
-  -h newspaperprojector.local -p 8883 \
+  -h newspaper-projector -p 8883 \
   -u projector -P changeme \
   -t "projector/#"
 
 # Publish
 mosquitto_pub \
   --cafile ~/ca.crt \
-  -h newspaperprojector.local -p 8883 \
+  -h newspaper-projector -p 8883 \
   -u projector -P changeme \
   -t "projector/command/gesture" -m "PAGE_NEXT"
 ```
@@ -392,6 +392,50 @@ sudo reboot
 
 After the reboot, Openbox starts automatically, `rc.local` initialises the DLPC2607, and Chromium opens the newspaper in kiosk mode.
 
+### 15. Disabling Greybus-I2C
+
+The `Greybus-I2C (gb_i2c)` is not needed. This part is optional but it could help to recude errors.
+
+We create a configuration file to exclude `gb_i2c` using a blacklist:
+
+```
+sudo nano /etc/modprobe.d/blacklist-greybus.conf
+```
+
+Write the following lines to the file to completely block `gb_i2c` and the associated Greybus modules at startup:
+
+```
+blacklist gb_i2c
+blacklist gb_gbphy
+blacklist greybus
+```
+
+Save the file (`Ctrl+O`, press `Enter` to confirm, and press `Ctrl+X` to exit the editor).
+
+To ensure that the change takes effect immediately and is applied the next time the system starts up (boots), update the ramdisk (`initramfs`):
+
+```
+sudo update-initramfs -u
+```
+
+The next time you reboot, `gb_i2c` is guaranteed to remain disabled, and your I2C board will run directly on the native `OMAP bus`!
+
+### 16. Reduce Electricity Consumption
+
+Let's say this projector is never used between 8:00 p.m. and 8:00 a.m.; in that case, we can use `rtcwake` to put the BeagleBone Black to sleep. To do this, we enter the following in `crontab`. 
+
+```
+0 20 * * * /usr/sbin/rtcwake -m mem -t $(date -d "08:00 tomorrow" +%s)
+```
+
+You can edit `crontab` with `sudo crontab -e`. It will then look like this:
+
+```
+0 9 * * * /usr/bin/python3 /home/debian/scripts/download_sueddeutsche.py
+5 9 * * * /home/debian/scripts/reload_newspaper.sh
+0 20 * * * /usr/sbin/rtcwake -m mem -t $(date -d "08:00 tomorrow" +%s)
+```
+
 ---
 
 ## Verification
@@ -453,7 +497,7 @@ mosquitto_pub -h <broker-ip> -t "projector/command/testpattern" -m "CHECKERBOARD
 The `projector-ui` service runs a Flask/SocketIO web interface on port 5000. Open in any browser on the local network:
 
 ```
-http://newspaperprojector.local:5000
+http://newspaper-projector:5000
 ```
 
 The interface provides buttons for power, freeze, rotation, mirror, test patterns, and article navigation. State is updated in real time via WebSocket.
@@ -465,12 +509,8 @@ The interface provides buttons for power, freeze, rotation, mirror, test pattern
 The I2C freezes after a while. To fix this, we use `crontab` to remove `i2c_omap` from the `kernel` and reload it. You can edit the `crontab` with `sudo crontab -e`. When you're done, your crontab should contain the following lines.
 
 ```
-0 9 * * * /usr/bin/python3 /home/debian/scripts/download_sueddeutsche.py
-5 9 * * * /home/debian/scripts/reload_newspaper.sh
-0 8,20,0 * * * /sbin/rmmod i2c_omap && /sbin/modprobe i2c_omap
+Currently no solution!
 ```
-
-I use the `Newspaper Projector` in a lab setting between 9:30 a.m. and 6:00 p.m. Of course, if you use the projector in the evening to watch TV or for other purposes, you might want to choose different times for the crontab.
 
 ---
 
