@@ -441,7 +441,7 @@ debian ALL=(ALL) NOPASSWD: /usr/bin/tee /sys/bus/platform/drivers/omap_i2c/unbin
 Let's say this projector is never used between 8:00 p.m. and 8:00 a.m.; in that case, we can use `rtcwake` to put the BeagleBone Black to sleep. To do this, we enter the following in `crontab`. 
 
 ```
-0 20 * * * /usr/sbin/rtcwake -m mem -t $(date -d "08:00 tomorrow" +%s)
+0 20 * * * /usr/sbin/rtcwake -m mem -t $(/bin/date -d "08:00 tomorrow" +%s)
 ```
 
 You can edit `crontab` with `sudo crontab -e`. It will then look like this:
@@ -449,7 +449,7 @@ You can edit `crontab` with `sudo crontab -e`. It will then look like this:
 ```
 0 9 * * * /usr/bin/python3 /home/debian/scripts/download_sueddeutsche.py
 5 9 * * * /home/debian/scripts/reload_newspaper.sh
-0 20 * * * /usr/sbin/rtcwake -m mem -t $(date -d "08:00 tomorrow" +%s)
+0 20 * * * /usr/sbin/rtcwake -m mem -t $(/bin/date -d "08:00 tomorrow" +%s)
 ```
 
 ---
