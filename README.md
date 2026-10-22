@@ -420,7 +420,23 @@ sudo update-initramfs -u
 
 The next time you reboot, `gb_i2c` is guaranteed to remain disabled, and your I2C board will run directly on the native `OMAP bus`!
 
-### 16. Reduce Electricity Consumption
+### 16. OMAP sudoers configuration
+
+Since the script (`control_mqtt.py`) is likely running under the `debian` user, by default this user is not allowed to write to `/sys/bus/platform/drivers/omap_i2c/` without a password.
+
+To ensure that the automatic reset works smoothly, grant the `debian` user permission for this specific command:
+
+1. Open the sudoers configuration:
+```bash
+sudo visudo
+```
+
+2. Add this line at the very bottom (so that `debian` can unmount/mount the driver without a password):
+```text
+debian ALL=(ALL) NOPASSWD: /usr/bin/tee /sys/bus/platform/drivers/omap_i2c/unbind, /usr/bin/tee /sys/bus/platform/drivers/omap_i2c/bind
+```
+
+### 17. Reduce Electricity Consumption
 
 Let's say this projector is never used between 8:00 p.m. and 8:00 a.m.; in that case, we can use `rtcwake` to put the BeagleBone Black to sleep. To do this, we enter the following in `crontab`. 
 
