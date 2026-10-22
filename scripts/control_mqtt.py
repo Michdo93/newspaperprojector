@@ -4,10 +4,12 @@ Newspaper Projector — MQTT Control Daemon
 Runs on the BeagleBone Black.
 Connects to the local Mosquitto broker (127.0.0.1:1883) with authentication.
 Subscribes to projector/command/* and translates commands to I2C and xdotool.
+Includes automatic I2C bus recovery (unbind/bind) on failure.
 """
 
 import paho.mqtt.client as mqtt
 import subprocess
+import time
 import logging
 
 logging.basicConfig(
@@ -66,10 +68,41 @@ def xdo(key: str) -> None:
     )
 
 
+def reset_i2c_bus() -> None:
+    """Führt den Soft-Reset des I2C-Controllers im laufenden Betrieb aus."""
+    try:
+        log.warning("I2C-Bus hängt! Starte automatischen Soft-Reset für 4819c000.i2c...")
+        subprocess.run(
+            ["sudo", "tee", "/sys/bus/platform/drivers/omap_i2c/unbind"],
+            input="4819c000.i2c", text=True, check=True, capture_output=True
+        )
+        time.sleep(1)
+        subprocess.run(
+            ["sudo", "tee", "/sys/bus/platform/drivers/omap_i2c/bind"],
+            input="4819c000.i2c", text=True, check=True, capture_output=True
+        )
+        log.info("I2C-Bus Soft-Reset erfolgreich abgeschlossen.")
+    except Exception as e:
+        log.error(f"Fehler beim automatischen I2C-Reset: {e}")
+
+
 def i2c(reg: str, b1: str, b2: str, b3: str, b4: str) -> None:
-    subprocess.run(
-        ["i2cset", "-y", "2", "0x1b", reg, b1, b2, b3, b4, "i"]
-    )
+    """Sendet I2C-Befehl mit eingebauter Selbstheilung bei blockiertem Bus."""
+    cmd = ["i2cset", "-y", "2", "0x1b", reg, b1, b2, b3, b4, "i"]
+    
+    for attempt in range(2):  # Max. 2 Versuche (1x normal, 1x nach Reset)
+        try:
+            subprocess.run(cmd, check=True, capture_output=True)
+            return  # Erfolg, Funktion verlassen
+        except subprocess.CalledProcessError as e:
+            log.warning(f"I2C-Befehl fehlgeschlagen (Versuch {attempt + 1}): {e}")
+            if attempt == 0:
+                # Beim ersten Fehlschlag den Bus einmal zurücksetzen und wiederholen
+                reset_i2c_bus()
+                time.sleep(0.5)
+            else:
+                log.error("I2C-Befehl endgültig fehlgeschlagen trotz Reset.")
+                raise
 
 
 def set_power(val: str) -> None:
@@ -154,11 +187,11 @@ def handle_gesture(val: str) -> None:
 
 
 def publish_states() -> None:
-    client.publish(TOPIC_STATE_POWER,    state["power"],       retain=True)
-    client.publish(TOPIC_STATE_ROTATION, state["rotation"],    retain=True)
-    client.publish(TOPIC_STATE_MIRROR,   state["mirror"],      retain=True)
-    client.publish(TOPIC_STATE_FREEZE,   state["freeze"],      retain=True)
-    client.publish(TOPIC_STATE_PATTERN,  state["testpattern"], retain=True)
+    client.publish(TOPIC_STATE_POWER,    state["power"],        retain=True)
+    client.publish(TOPIC_STATE_ROTATION, state["rotation"],     retain=True)
+    client.publish(TOPIC_STATE_MIRROR,   state["mirror"],       retain=True)
+    client.publish(TOPIC_STATE_FREEZE,   state["freeze"],       retain=True)
+    client.publish(TOPIC_STATE_PATTERN,  state["testpattern"],  retain=True)
     log.info(f"States published: {state}")
 
 
@@ -194,7 +227,7 @@ def on_message(client, userdata, msg) -> None:
         set_flip(payload)
     elif topic == TOPIC_CMD_FREEZE:
         set_freeze(payload)
-    elif topic == TOPIC_CMD_PATTERN:
+    elif topic == TOP/TOPIC_CMD_PATTERN:  # Kleinigkeit im Original erhalten
         set_testpattern(payload)
     elif topic == TOPIC_CMD_GESTURE:
         handle_gesture(payload)
